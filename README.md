@@ -14,6 +14,10 @@ each module's own repository.
 | `path_to_root_Audit.md` | Cross-module audit of the `$path_to_root` depth bug |
 | `check_path_to_root.py` | Automated check for that bug (CI candidate) |
 | `PageController_Refactor_Plan.md` | Migrating `pages/*.php` to root controllers + SRP views/handlers |
+| `Column_Level_ACL_Design.md` | Column-level ACL for `ksf-common-db`: push-down vs post-fetch, inference-oracle matrix, policy contract, phased plan |
+| `Explicit_Column_ACL_API.md` | Explicit-column API + `SELECT *` rejection + join-skipping rules; legacy `ksf_modules_common` array-DSL findings |
+| `ACL_Two_Approaches.md` | Decision to build BOTH app-layer and DB-layer column ACL; MariaDB view design (session-var blocker, `db_import` prefix hazards), composition rule, phased plan |
+| `Schema_Registry_Design.md` | One schema declaration serving query builder + column ACL + workflow UI; should modules return schemas (advertise + resolver, not inline); drift detection by version stamping; `TableDefinition` adoption census |
 | `Requirements/` | BABOK requirement docs for inbound email capture |
 
 ## Standing decisions
