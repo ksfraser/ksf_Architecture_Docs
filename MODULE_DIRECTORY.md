@@ -43,6 +43,7 @@
 
 | Package | Dir | Namespace | Purpose |
 |---------|-----|-----------|---------|
+| `ksfraser/ksf-architecture-docs` | `ksf_Architecture_Docs/` | — | Cross-module architecture decisions, BABOK requirements and design records (schema codegen, ACL, workflow engine, shared front controller, per-module adoption reports). Documentation repo - hardlinks the shared `AGENTS*.md` / `MODULE_DIRECTORY.md` / `PACKAGIST.md` / `APP_TAB_ARCHITECTURE.md` set rather than copying them. |
 | `ksfraser/exceptions` | `Exceptions/` | `ksfraser\Exceptions\` | Centralized exception library (Domain, Utility, CRM, Calendar, PM). 24 dependents. |
 | `ksfraser/famock` | `famock/` | `ksfraser\FAMock\` | FA function mocks for unit testing outside live FA. 20 dependents. |
 | `ksfraser/ksf-fa-common` | `ksf_FA_Common/` | `ksfraser\FrontAccounting\Common\` | Shared FA platform as a **pure Composer/Packagist package** (v1.0.10, no FA extension — hooks.php deleted). ContactTypeRegistry, SchemaInstaller, Traits (WorkflowHooks, CrudOperations, FlashMessage, CalendarRegistration), plus `FileStorageService` and a `BaseHooks` base class (referenced by ksf_FA_Attachments), `ItemEvents\ItemEventPublisher`, `ExtensionRegistry`, `JobQueue`, `PreferenceRepository`. Loaded lazily via Composer autoload; **not** activated as an extension. |
