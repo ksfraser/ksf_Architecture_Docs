@@ -581,6 +581,39 @@ use FA-native classes (`inputsubmit`) — `FormFooter` defaults `useAjax=false`;
 `MasterSummaryTable` row actions (Edit/Delete) already render native
 `inputsubmit` rows (the tab controller passes `'ajax' => false`).
 
+### 9.3 Working-directory check — MANDATORY before any file change (2026-10-11)
+
+Run this before editing **any** file:
+
+```bash
+pwd                                              # must NOT contain fa_modules
+basename "$(git rev-parse --show-toplevel)"     # which repo
+git remote get-url origin                        # ksf_X (logic) or ksf_FA_X (FA wrapper)?
+git branch --show-current
+```
+
+**If the path contains `fa_modules/`, STOP.** That is deployed output. Find the
+dev checkout under `~/Documents` and work there.
+
+Why, concretely: on 2026-10-11 six modules' changes were committed and pushed
+from inside `fa_modules/` because this check was not performed. 32 git clones
+live there, each duplicating a dev checkout. A commit made in the deploy tree
+lives only in that clone and is **silently overwritten** by the next deploy
+`sync`. Full reasoning: `ksf_Architecture_Docs/ADR/ADR-001`.
+
+### 9.4 `ksf_<module>` vs `ksf_FA_<module>` — two DIFFERENT repos (2026-10-11)
+
+They are **not** clones of each other and must never be reconciled:
+
+- `ksfraser/ksf_<module>` — target-agnostic business logic (FA, WP, Joomla…)
+- `ksfraser/ksf_FA_<module>` — FA wrapper: `hooks.php`, security areas, pages,
+  controller. **Consumes** the business-logic package.
+
+Identify the repo by **remote URL**, not directory name. Branch conventions
+differ per repo and are not interchangeable — check before comparing against a
+remote. Mistaking these cost an unnecessary rebase on 2026-10-11.
+Full reasoning: `ksf_Architecture_Docs/ADR/ADR-002`.
+
 ## 10. FA DB layer — correct API (gotchas)
 
 - `$db` is **raw mysqli**; FA has **no prepared statements**.
