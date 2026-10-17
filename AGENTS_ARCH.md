@@ -1120,6 +1120,25 @@ fixed — verify a guard fails when you reintroduce a violation.
   release/build in a separate field; the FA-compat major is what FA checks.
 - `install.sql` schema: hardcoded `0_` prefix; do not use `@TB_PREF@`/`{TB_PREF}`;
   probe existing tables with the bare table name.
+- **Table naming: `0_ksf_<module>_<noun>`. Never `0_fa_*`.** A `0_` prefix marks
+  the company prefix, so `fa` as the *second* segment collides with FA core's own
+  `0_fa_*` tables and makes it unclear whether a table is ours or the platform's.
+  Use the owning module's short name: `0_ksf_calendar_entries`,
+  `0_ksf_crm_customer_types`, `0_ksf_gpg_settings`. (Live counterexample:
+  Calendar shipped `0_fa_preference_values`, and a stale install left a
+  malformed `kfa_cal_sources` — the prefix dropped entirely.)
+- **Where a module keeps its settings/preferences:**
+  - **One or two values** → use FA's system preferences, `get_pref()` /
+    `set_pref()`. Do not create a table.
+  - **A whole bunch** → a stand-alone table named `0_ksf_<module>_prefs`, created,
+    pre-seeded and dropped with the module's install / activate / uninstall
+    lifecycle (`install.sql`, the `activate_extension()` → `db_import()` path,
+    `uninstall.sql`). Never hand-create or hand-drop it at runtime.
+  - **One key/value store shared by every module** → a single
+    `0_ksf_module_prefs` table keyed by `module_name` (plus `user_id` where the
+    setting is per-user), not one near-identical table per module. Schema it with
+    `UNIQUE(module_name, user_id, pref_key)`. Calendar's preference store was
+    designed this way and is being renamed to this name.
 - **Deactivation**: use `sql/uninstall.sql` (also hardcoded `0_` prefix), NOT manual
   `db_query()`. In `deactivate_extension()`, call `db_import()` with the **filename**
   (it takes a path, not a string) and the company connection array. See
