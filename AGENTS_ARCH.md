@@ -1281,6 +1281,104 @@ mistake, fixed in `4db5a07`) documents a table that never existed.
 revision of this doc referenced it. The real helpers are `db_import()` (one
 filename) and `check_table()`.
 
+### 12.2 Native FA data access — the shared contact resolver (owner decision, 2026-10)
+
+**The rule.** A module must use FA core's own data through FA core's own
+functions rather than re-implementing the storage:
+
+> Use NATIVE FA FUNCTION CALLS to access native FA data.
+
+Not raw SQL against FA core tables. A hand-written `SELECT ... FROM 0_crm_persons`
+re-implements FA's storage: it breaks when FA changes the schema, it bypasses
+FA's company-prefix handling, and it silently produces different answers from
+the function the platform actually ships. This applies to every FA core table —
+`0_crm_persons`, `0_crm_contacts`, `0_crm_categories`, `0_debtors_master`,
+`0_stock_master`, `0_users` … A module that needs FA's data calls FA's
+function; a module that needs its *own* data owns a table (see the naming rule
+below).
+
+**The concrete case: CRM contacts.** CRM is to use NATIVE FA tables/data where
+possible, so our own `0_ksf_crm_contacts` table was **DEPRECATED**. FA's own
+`0_crm_persons` (the person) and `0_crm_contacts` (the relation between a
+person and an entity, in a category) are the contact store. Therefore:
+
+- `0_ksf_crm_contacts` is **deprecated**. Do not use it, do not read it, do not
+  write it, do not migrate data into it, and do not re-create it.
+- Do not introduce a replacement of our own either (`0_ksf_crm_contact_*`).
+  There is one contact registry: FA's.
+- "Obviously not everything was updated" — the CRM's own
+  `src/FrontAccounting/CRM/Repository/ContactsRepository.php` still reads
+  `0_ksf_crm_contacts`, and other modules reach for a contact table directly.
+  That is drift to be fixed module by module; it is **not** a reason to keep
+  using the deprecated table.
+- Live counterexample of the rule being broken: one module addresses
+  `0_fa_crm_contacts` — that table has never existed (FA's table is
+  `0_crm_contacts`, no `fa_` segment). Same class of bug, one segment apart.
+
+**The native functions to prefer (verified against FA 2.4.3 source,
+`includes/db/crm_contacts_db.inc` and `sales/includes/db/customers_db.inc`).**
+
+| Function | Signature / purpose |
+|---|---|
+| `get_crm_person($id)` | One person row (`crm_persons`) **plus** `['contacts' => …]`, the person's contact-category ids. |
+| `get_crm_persons($type = null, $action = null, $entity = null, $person = null, $unique = false)` | The relation query: `crm_persons ⋈ crm_contacts ⋈ crm_categories`. This is the native way to get *an entity's contacts* — e.g. `get_crm_persons('customer', null, $debtor_no)`. `$unique = true` groups by person. Falls back to the `'general'` action when a filtered query returns nothing. |
+| `get_crm_contact($id)` | One contact row: `type`, `action`, `person_id`, the person's fields, and the contact's own `id`. |
+| `get_person_contacts($id)` | The person's contact **category** ids (`crm_categories.id`) — **not** contact row ids. A common misreading; the ids are category ids. |
+| `add_crm_contact($type, $action, $entity_id, $person_id)` | Create a contact relation. |
+| `add_crm_person($ref, $name, $name2, $address, $phone, $phone2, $fax, $email, $lang, $notes, $cat_ids = null, $entity = null)` | Create a person (optionally with contact categories). Returns the new id. |
+| `update_crm_person($id, $ref, $name, $name2, $address, $phone, $phone2, $fax, $email, $lang, $notes, $cat_ids, $entity = null, $type = null)` | Update a person and their contacts. |
+| `update_person_contacts($id, $cat_ids, $entity_id = null, $type = null)` | Replace a person's contact categories. |
+| `delete_crm_contact($id)` | Delete one contact relation. |
+| `delete_crm_contacts($person_id = null, $type = null, $entity_id = null, $action = null)` | Delete selected contact relations. |
+| `delete_crm_person($person, $with_contacts = false)` | Delete a person (and optionally their contacts). |
+| `delete_entity_contacts($class, $entity)` | Delete every contact of an entity, and clean up persons left with no contacts. |
+| `get_customer($customer_id)` | The debtor record (`debtors_master`) for a customer id. |
+| `get_customer_name($customer_id)` | The customer's name. |
+| `get_customer_contacts($customer_id, $action = null)` | The customer's contacts, as person rows. Customer-specific wrapper over `get_crm_persons('customer', …)`; also normalises the demo `lang = 'C'` value to `''`. |
+| `get_customer_details($customer_id, $to = null, $all = true)` | The customer record with balances. |
+
+Also available in the same file for the category registry:
+`add_crm_category`, `update_crm_category`, `delete_crm_category`,
+`get_crm_categories`, `get_crm_category`, `get_crm_category_name`,
+`is_crm_category_used`.
+
+**Note on loading them.** `includes/db/crm_contacts_db.inc` and
+`sales/includes/db/customers_db.inc` are **not** auto-loaded by
+`includes/main.inc`. A module that calls these functions must
+`include_once` the file itself (both are pure function-definition files, so a
+guarded `include_once` is safe).
+
+**The shared seam: a module must go through the contact resolver.** Any module
+that needs a contact must call the **shared contact resolver** in
+`ksf_FA_Common` — it must not query a contact table itself:
+
+- Contract: `ksfraser\FrontAccounting\Common\ContactResolver\Contract\ContactResolverInterface`
+- FA implementation: `ksfraser\FrontAccounting\Common\ContactResolver\FaContactResolver`
+  (calls the native functions above; no SQL against FA core tables)
+- Front door (hook dispatch + fallback):
+  `ksfraser\FrontAccounting\Common\ContactResolver\ContactResolver`
+- Non-FA implementations (WordPress, Nextcloud, standalone): implement the same
+  contract and inject it, or answer the `ksf_contact_resolve` hook.
+
+Lookups the contract covers: person by id, person(s) by email, a debtor's
+(customer's) contacts, an entity's contacts, a contact row by id, a person's
+contact-category ids, and a name/email search.
+
+**A shared seam must never be gated on another module's activation.** The
+resolver lives in `ksf_FA_Common`, a Composer package that is always
+loadable — it is **not** "unavailable because `ksf_FA_CRM` is not activated".
+When FA's CRM tables or functions are absent, the resolver returns "no
+contact" (empty list / null); it never fatals, and it never asks whether
+another module is active. The same rule applies to the hook: a listener's
+absence is a normal state, not an error.
+
+**The table-naming consequence.** Our own tables are `0_ksf_<module>_<noun>`;
+`0_fa_*` is reserved for FA core (see the naming rule in §12 above). The
+contact registry is FA core's, so it keeps FA core's names — `0_crm_persons`,
+`0_crm_contacts`, `0_crm_categories` — and no module may claim a `0_ksf_*`
+counterpart for it. Our naming rule applies to tables we own, not to tables
+FA owns.
+
 ## 13. RBAC Architecture (ksf_FA_RBAC)
 
 ### Design Document
