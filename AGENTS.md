@@ -18,15 +18,26 @@ Read this before designing or refactoring anything that spans modules.
 
 ## ksf_payment_destinations — development tree status
 
-**`~/Documents/FA_PaymentDestinations/` is an ABORTED branch.** Do not develop
-there. That directory is a bind mount (via `~/Documents/ksf_Infrastructure/`)
-that was used for documentation only — it has no `src/`, no `Tests/`, no
-PSR-4 refactoring, and no `@BABOK` traceability annotations. All development
-happened in `~/Documents/ksf_payment_destinations/` which is the primary
-working dev tree.
+**`~/Documents/FA_PaymentDestinations/` was an ABORTED branch, and has been
+REMOVED (2026-10-17).** Its GitHub repo `ksfraser/FA_PaymentDestinations` was
+deleted upstream, so the local tree pointed at a 404. The directory was a
+documentation-only bind mount: no `src/`, no `Tests/`, no PSR-4 refactoring,
+no `@BABOK` traceability. All development belongs in
+`~/Documents/ksf_payment_destinations/`, which is the primary working dev tree
+and the live package (`ksfraser/ksf_payment_destinations`).
 
-If you find yourself editing files in `FA_PaymentDestinations/` — STOP and
-switch to `ksf_payment_destinations/` immediately.
+Before removal, the three `class.ksf_payment_destinations*.php` files were
+diffed against the live tree: the live tree is a strict superset — it adds
+`@BABOK Related:` annotations and docblocks pointing at the PSR-4 successors
+(`src/Controller/PaymentDestinationController.php`, `src/Service/`,
+`src/Repository/` + QueryBuilder, `src/View/`), and drops only two
+commented-out `require_once` lines the refactor replaced with real code.
+Nothing was lost. Backups:
+`~/backups/FA_PaymentDestinations-all-refs-2026-10-17.bundle` and
+`FA_PaymentDestinations-tree-2026-10-17.tar.gz`.
+
+Do NOT recreate that directory. If you find a working copy of it, treat it as
+an aborted branch: switch to `ksf_payment_destinations/` immediately.
 
 ## Cross-module facts (at a glance)
 
