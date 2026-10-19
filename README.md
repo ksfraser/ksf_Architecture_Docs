@@ -12,6 +12,7 @@ each module's own repository.
 | `EmailManager_Analysis.md` | Same for EmailManager; root cause of its HTTP 500s |
 | `EmailManager_DebtorResolution_Fix.md` | The `debtors_master.email` defect and the corrected resolution |
 | `path_to_root_Audit.md` | Cross-module audit of the `$path_to_root` depth bug |
+| `Table_Naming_Audit_2026-10.md` | Estate-wide table-name audit: every `ksf_FA_*` / `ksf_*` table classified (conforming / FA-core / legacy-suspect / shared store), the `0_fa_*` rename checklist, and the modules whose code addresses a table no schema creates |
 | `check_path_to_root.py` | Automated check for that bug (CI candidate) |
 | `PageController_Refactor_Plan.md` | Migrating `pages/*.php` to root controllers + SRP views/handlers |
 | `Column_Level_ACL_Design.md` | Column-level ACL for `ksf-common-db`: push-down vs post-fetch, inference-oracle matrix, policy contract, phased plan |
