@@ -40,6 +40,12 @@ WHAT IS ALLOWED
   That is the one place the legacy name must still be written: it is the
   statement that moves the table OFF the legacy name.
 * A constant whose name says it is a legacy name (`const LEGACY_...`).
+* A line that carries the `ksf-legacy-table-name` marker, or a comment
+  block that carries it within the 20 lines above the reference.  The only
+  legitimate use is an upgrade path that reads a legacy table before
+  retiring it.  The marker has to be visible on the line or just above it,
+  so an acknowledgement can never be inherited from somewhere else in the
+  file.
 * Comments and prose.  PHP and SQL comments are stripped before scanning.
 
 EXIT CODES
@@ -82,7 +88,7 @@ SCAN_EXTS = ('.php', '.sql', '.inc', '.phtml', '.mjs', '.js')
 FA_NAME = r"fa_[A-Za-z0-9_]+"
 
 R1_LITERAL = re.compile(r"\b0_" + FA_NAME)
-R2_TBPREF = re.compile(r"TB_PREF\s*\.\s*['\"]" + FA_NAME + r"['\"]")
+R2_TBPREF = re.compile(r"TB_PREF\s*\.\s*['\"]" + FA_NAME)
 R3_CONST = re.compile(
     r"\bconst\s+[A-Za-z0-9_]*TABLE[A-Za-z0-9_]*\s*=\s*['\"]" + FA_NAME + r"['\"]")
 R3_LEGACY_CONST = re.compile(
@@ -94,6 +100,12 @@ R5_SQL_POSITION = re.compile(
 
 # A migration line: the legacy name is the SOURCE of a rename.
 MIGRATION = re.compile(r"RENAME\s+TO\s+`?0_ksf_[A-Za-z0-9_]+`?", re.I)
+
+# An explicit acknowledgement: a line that deliberately addresses a table
+# that is still named in the fa_ namespace.  The only legitimate use is an
+# upgrade path that reads a legacy table before retiring it, and every such
+# line must say so on the line itself.
+LEGACY_MARKER = "ksf-legacy-table-name"
 
 
 PHP_STRINGS_AND_COMMENTS = re.compile(
@@ -108,7 +120,9 @@ def strip_php_comments(source):
     """Remove PHP comments, keeping string literals intact."""
     def repl(match):
         if match.group('comment') is not None:
-            return ' '
+            # Keep the line count intact so the reported line numbers match
+            # the file on disk.
+            return '\n' * match.group('comment').count('\n')
         return match.group('string')
     return PHP_STRINGS_AND_COMMENTS.sub(repl, source)
 
@@ -151,11 +165,26 @@ def scan_file(path, root):
         text = raw
 
     violations = []
-    for lineno, line in enumerate(text.splitlines(), 1):
+    recent = []
+    raw_lines = raw.splitlines()
+    code_lines = text.splitlines()
+    for lineno, line in enumerate(code_lines, 1):
+        # The marker is looked up in the ORIGINAL text: it is a comment, so
+        # the comment-stripped text no longer carries it.  It may sit on the
+        # line itself or in the comment block just above it (an SQL statement
+        # usually spans several lines).
+        raw_line = raw_lines[lineno - 1] if lineno - 1 < len(raw_lines) else ''
+        window = '\n'.join(recent[-20:] + [raw_line])
+        acknowledged = LEGACY_MARKER in window
+        recent.append(raw_line)
         if 'fa_' not in line:
             continue
         if MIGRATION.search(line):
             # The legacy name is the source of a rename: allowed.
+            continue
+        if acknowledged:
+            # Explicitly acknowledged: an upgrade path that reads a legacy
+            # table before retiring it.
             continue
         if R3_LEGACY_CONST.search(line):
             # A constant that declares itself a legacy name: allowed.
