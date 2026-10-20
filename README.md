@@ -19,6 +19,9 @@ each module's own repository.
 | `Explicit_Column_ACL_API.md` | Explicit-column API + `SELECT *` rejection + join-skipping rules; legacy `ksf_modules_common` array-DSL findings |
 | `ACL_Two_Approaches.md` | Decision to build BOTH app-layer and DB-layer column ACL; MariaDB view design (session-var blocker, `db_import` prefix hazards), composition rule, phased plan |
 | `Schema_Registry_Design.md` | One schema declaration serving query builder + column ACL + workflow UI; should modules return schemas (advertise + resolver, not inline); drift detection by version stamping; `TableDefinition` adoption census |
+| `Contact_Access_Inventory_2026-10.md` | Estate-wide inventory of contact access: 144 sites across 46 repositories, classified against FA 2.4.3's own tables and functions |
+| `Contact_Ambiguity_Review_2026-10.md` | The 11 contact-data ambiguities, with recommended rulings, costs and a decision order |
+| `Party_Account_Model_2026-10.md` | Domain model for the party/contact/account estate: PERSON, PARTY, ACCOUNT, ACCOUNT-PARTY ROLE; seven lifecycle operations (merge, split, spin-off, promote, soft link, associate, clone-with-link); proposed `0_ksf_common_*` schema; migration and incomplete-handling position; proposed BR-COM-010 / FR-COM-010-0xx requirements |
 | `Requirements/` | BABOK requirement docs for inbound email capture |
 
 ## Standing decisions
