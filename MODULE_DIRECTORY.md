@@ -99,7 +99,7 @@ HRM (`ksf_FA_HRM`) is an orchestrator. These sub-modules answer hooks:
 
 | Module | Version | Purpose | Tables |
 |--------|---------|---------|--------|
-| **ksf_FA_Common** | — | Platform foundation library (pure Composer package, not activated). ContactTypeRegistry, SchemaInstaller. Creates shared tables on demand: `0_ksf_contact_types`, `0_fa_job_queue`, `0_ksf_item_event_watermark`, `0_ksf_item_sync_state`, `0_ksf_notifications`. | on-demand shared tables |
+| **ksf_FA_Common** | — | Platform foundation library (pure Composer package, not activated). ContactTypeRegistry, SchemaInstaller. Creates shared tables on demand: `0_ksf_contact_types`, `0_ksf_common_job_queue`, `0_ksf_modules`, `0_ksf_item_event_watermark`, `0_ksf_item_sync_state`, `0_ksf_notifications`. | on-demand shared tables |
 | **ksf_FA_Classes** | — | Base class library (no hooks.php) | None |
 | **ksf_FA_RBAC** | 1.0.0 | Role-based access control. Bridges `ksfraser/rbac` to FA. | `0_rbac_teams`, `0_rbac_team_members`, `0_rbac_record_access`, `0_rbac_audit_log` |
 | **ksf_FA_GPG** | 2.4.19-0 | GPG signing/encryption. Key management UI. | `0_ksf_gpg_keys`, `0_ksf_gpg_operations`, `0_ksf_gpg_files`, `0_ksf_gpg_settings`, `0_ksf_gpg_team_keys` |
@@ -112,8 +112,8 @@ HRM (`ksf_FA_HRM`) is an orchestrator. These sub-modules answer hooks:
 
 | Module | Version | Purpose | Tables |
 |--------|---------|---------|--------|
-| **ksf_FA_CRM** | 1.0.0 | Full CRM suite. Customers, contacts, leads, opportunities, communications, quotes, territories. | `0_fa_crm_*` (16 tables) |
-| **ksf_FA_Calendar** | 2.5.0 | Calendar/events/meetings. CRM/HRM integration. Has own app tab. | `0_fa_cal_entries`, `0_fa_cal_invitees`, `0_fa_cal_sources` |
+| **ksf_FA_CRM** | 1.0.0 | Full CRM suite. Customers, contacts, leads, opportunities, communications, quotes, territories. | `0_ksf_crm_*` (16 tables) |
+| **ksf_FA_Calendar** | 2.5.0 | Calendar/events/meetings. CRM/HRM integration. Has own app tab. | `0_ksf_calendar_entries`, `0_ksf_calendar_invitees`, `0_ksf_calendar_sources` |
 | **ksf_FA_CampaignBuilder** | 1.0.0 | Marketing campaign management | `fa_campaigns`, `fa_campaign_nodes` |
 | **ksf_FA_EmailManager** | 1.0.0 | Email campaigns, templates, automation | Schema placeholder |
 | **ksf_FA_Loyalty** | 1.0.0 | Customer loyalty points/tiers. Depends on `ksf_FA_CRM` (customer contacts). | Schema placeholder |
@@ -169,8 +169,8 @@ HRM (`ksf_FA_HRM`) is an orchestrator. These sub-modules answer hooks:
 | Module | Version | Purpose | Tables |
 |--------|---------|---------|--------|
 | **ksf_FA_Documents** | 1.0.0 | Document versioning, linking, GPG integration | `fa_documents*` (5 tables) |
-| **ksf_FA_Attachments** | — | Cross-module file attachments | `0_fa_attachments`, `0_fa_attachment_audit` |
-| **ksf_FA_Notes** | 1.0.0 | Notes/comments on transactions/contacts | `0_fa_crm_notes`, `0_fa_note_links` |
+| **ksf_FA_Attachments** | — | Cross-module file attachments | `0_ksf_attachments`, `0_ksf_attachments_audit` |
+| **ksf_FA_Notes** | 1.0.0 | Notes/comments on transactions/contacts | `0_ksf_Notes`, `0_ksf_Notes_link` |
 | **ksf_FA_KnowledgeBase** | 1.0.0 | Articles, categories, FAQ | `fa_kb_*` (3 tables) |
 | **ksf_FA_Forms** | 1.0.0 | Custom form builder | `fa_forms`, `fa_form_submissions` |
 
@@ -335,7 +335,8 @@ HRM (`ksf_FA_HRM`) is an orchestrator. These sub-modules answer hooks:
 
 ### Shared Tables
 - `0_ksf_contact_types` — Contact type registry (ksf_FA_Common; created on demand)
-- `0_fa_job_queue` — Job queue (ksf_FA_Common; created on demand)
+- `0_ksf_common_job_queue` — Job queue (ksf_FA_Common; created on demand)
+- `0_ksf_modules` — Shared registry of installed modules (ksf_FA_Common schema)
 - `0_ksf_notifications` — Notifications (ksf_FA_Common; created on demand)
 - `0_ksf_item_event_watermark` / `0_ksf_item_sync_state` — Item sync watermark + state (ksf_FA_Common; created on demand)
 - `0_staging_*` — Unified staging pipeline (ksf_FA_ImportStagingProcessing)

@@ -587,6 +587,26 @@ A hit in a `tests/` directory is a fixture, not a production failure.
 
 ---
 
+## 9. Resolution (2026-10-20)
+
+The cleanup pass that followed this audit is done. Every table in the `fa_`
+namespace has been renamed to `0_ksf_<owning-module>_<noun>` or removed, and
+the estate-wide guard now enforces the rule.
+
+* **Guard:** `tools/check_table_names.py` — run it from the estate root. It
+  fails on a literal `0_fa_*` name, on the runtime form `TB_PREF . 'fa_*'`,
+  on a table constant holding an `fa_*` name, and on a prefixless
+  `CREATE TABLE fa_*`. Migration lines (`ALTER TABLE ... RENAME TO
+  0_ksf_*`) and legacy-name constants are allowed; the bare-name-in-SQL
+  check is advisory.
+* The live Integration database was migrated with
+  `ALTER TABLE ... RENAME TO ...` (the form FA's `db_import()` accepts);
+  the dead `0_fa_note_links` table was dropped.
+* The sections above are kept as the record of what was found. Their table
+  names are historical.
+
+---
+
 ## Appendix A — reproducing the scan
 
 The scan is a whole-file, string-literal-aware walk over each repository.

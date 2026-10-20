@@ -1,0 +1,31 @@
+name: table names
+
+# The estate-wide table-naming guard.
+#
+# It scans every repository under the estate root, so it needs the whole
+# estate present - it cannot live in a single module's PHPUnit suite. The
+# job below therefore expects a runner that already has the estate checked
+# out under $ESTATE_ROOT (the standard integration/UAT runners do).
+#
+# Locally:
+#   python3 ksf_Architecture_Docs/tools/check_table_names.py
+#
+# Exit code 1 means a table is named in the fa_ namespace and the build must
+# fail. See the module docstring for the rules and the exemptions.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: [self-hosted, estate]
+    env:
+      ESTATE_ROOT: ${{ github.workspace }}
+    steps:
+      - name: Check the estate for tables in the fa_ namespace
+        run: |
+          python3 "$ESTATE_ROOT/ksf_Architecture_Docs/tools/check_table_names.py" \
+            --root "$ESTATE_ROOT"
