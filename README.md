@@ -22,7 +22,12 @@ each module's own repository.
 | `Contact_Access_Inventory_2026-10.md` | Estate-wide inventory of contact access: 144 sites across 46 repositories, classified against FA 2.4.3's own tables and functions |
 | `Contact_Ambiguity_Review_2026-10.md` | The 11 contact-data ambiguities, with recommended rulings, costs and a decision order |
 | `Party_Account_Model_2026-10.md` | Domain model for the party/contact/account estate: PERSON, PARTY, ACCOUNT, ACCOUNT-PARTY ROLE; seven lifecycle operations (merge, split, spin-off, promote, soft link, associate, clone-with-link); proposed `0_ksf_common_*` schema; migration and incomplete-handling position; proposed BR-COM-010 / FR-COM-010-0xx requirements |
-| `Requirements/` | BABOK requirement docs for inbound email capture |
+| `Requirements/` | BABOK requirement docs for inbound email capture, record ownership / ACL, and capability contracts |
+| `Requirements/PARTY-ACCOUNT-MODEL.md` | Pointer to the party/account shared requirement set (`BR-COM-010`, `FR-COM-010-001…014`, `UC-COM-010-001…007` — **not yet written**) and to the CRM-facing set that already is |
+| `ADR/ADR-001-dev-deploy-separation.md` | Development happens in `~/Documents`, never in `fa_modules` |
+| `ADR/ADR-002-repo-pairing-convention.md` | `ksf_<module>` is business logic; `ksf_FA_<module>` is the FA wrapper |
+| `ADR/ADR-003-deploy-hygiene.md` | Exclude `.git` from deploys; check the working directory first; write files in place |
+| `ADR/ADR-004-party-account-lifecycle-model.md` | The party / person / account lifecycle model: four concepts, seven operations, and what is explicitly incomplete |
 
 ## Standing decisions
 
